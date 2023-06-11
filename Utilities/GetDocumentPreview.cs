@@ -4,6 +4,7 @@ using OfficeOpenXml;
 using OfficeOpenXml.Drawing;
 using Patagames.Pdf.Net;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Net.Http.Headers;
 
@@ -11,7 +12,8 @@ namespace DocumentManagementApi.Utilities
 {
     public static class GetDocumentPreview
     {
-
+      static  int width = 50;
+      static  int height = 50;
         public static byte[] GetPdfPreview(string filePath)
         {
             // Initialize the SDK library
@@ -29,17 +31,29 @@ namespace DocumentManagementApi.Utilities
 
                 if (previewImageObject != null)
                 {
-                    // Convert the image to byte array
-                    using (var stream = new MemoryStream())
+                    // Resize the image to the specified width and height
+                    using (var resizedImage = new Bitmap(width, height))
                     {
-                        previewImageObject.Bitmap.Image.Save(stream, ImageFormat.Png);
-                        return stream.ToArray();
+                        using (var graphics = Graphics.FromImage(resizedImage))
+                        {
+                            graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                            graphics.DrawImage(previewImageObject.Bitmap.Image, 0, 0, width, height);
+                        }
+
+                        // Convert the resized image to byte array
+                        using (var stream = new MemoryStream()) 
+                        {
+                            resizedImage.Save(stream, ImageFormat.Png);
+                            return stream.ToArray();
+                        }
                     }
                 }
             }
 
             return null;
         }
+
+
 
 
         public static byte[] GetWordPreview(string filePath)
@@ -58,7 +72,7 @@ namespace DocumentManagementApi.Utilities
                             var image = Image.FromStream(stream);
 
                             // Create a thumbnail of the image
-                            var thumbnail = image.GetThumbnailImage(200, 200, null, IntPtr.Zero);
+                            var thumbnail = image.GetThumbnailImage(width, height, null, IntPtr.Zero);
 
                             // Convert the thumbnail to a byte array
                             var thumbnailBytes = ImageToByteArray(thumbnail);
@@ -88,8 +102,7 @@ namespace DocumentManagementApi.Utilities
 
         private static byte[]  GetTextPreview(string filePath)
         {
-            int width = 200;
-            int height = 200;
+          
 
             // Load the text file contents
             string text = System.IO.File.ReadAllText(filePath);
@@ -121,13 +134,13 @@ namespace DocumentManagementApi.Utilities
 
         public static byte[] GetImagePreview(string filePath)
         {
-            int thumbnailWidth = 50;
-            int thumbnailHeight = 50;
+            int width = 50;
+            int height = 50;
 
             using (Image originalImage = Image.FromFile(filePath))
             {
                 // Create a thumbnail image with the specified width and height
-                using (Image thumbnailImage = originalImage.GetThumbnailImage(thumbnailWidth, thumbnailHeight, null, IntPtr.Zero))
+                using (Image thumbnailImage = originalImage.GetThumbnailImage(width, height, null, IntPtr.Zero))
                 {
                     using (MemoryStream stream = new MemoryStream())
                     {
