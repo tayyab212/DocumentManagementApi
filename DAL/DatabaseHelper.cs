@@ -4,16 +4,23 @@ using System.Data.SqlClient;
 
 namespace DocumentManagementApi.DAL
 {
-    public class DatabaseHelper
+    public interface IDatabaseHelper
+    {
+        Task InsertDocumentAsync(DocumentDto document);
+        int GetDownloadCountFromDatabase(string documentId);
+        void UpdateDownloadCountInDatabase(string documentId);
+        Task StoreTokenInDatabaseAsync(string token, string documentId);
+        (bool, string) CheckTokenValidity(string token);
+    }
+
+    public class DatabaseHelper : IDatabaseHelper
     {
         private readonly string _connectionString;
 
         public DatabaseHelper(IConfiguration configuration)
         {
-            _connectionString = configuration.GetConnectionString("DefaultConnection"); ;
-
+            _connectionString = configuration.GetConnectionString("DefaultConnection");
         }
-
 
         public async Task InsertDocumentAsync(DocumentDto document)
         {
@@ -40,13 +47,9 @@ namespace DocumentManagementApi.DAL
             }
             catch (Exception ex)
             {
-
-
+                // Handle the exception
             }
         }
-
-
-
 
         public int GetDownloadCountFromDatabase(string documentId)
         {
@@ -68,16 +71,7 @@ namespace DocumentManagementApi.DAL
 
                     command.ExecuteNonQuery();
 
-                    int downloadCount;
-
-                    if (outputParameter.Value != DBNull.Value)
-                    {
-                        downloadCount = (int)outputParameter.Value;
-                    }
-                    else
-                    {
-                        downloadCount = 0; // Or assign a default value as per your requirements
-                    }
+                    int downloadCount = outputParameter.Value != DBNull.Value ? (int)outputParameter.Value : 0;
                     return downloadCount;
                 }
             }
@@ -100,10 +94,8 @@ namespace DocumentManagementApi.DAL
             }
         }
 
-
         public async Task StoreTokenInDatabaseAsync(string token, string documentId)
         {
-            // TODO: Implement the database connection and call the stored procedure
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
                 await connection.OpenAsync();
@@ -118,7 +110,6 @@ namespace DocumentManagementApi.DAL
                 }
             }
         }
-
 
         public (bool, string) CheckTokenValidity(string token)
         {
@@ -144,8 +135,9 @@ namespace DocumentManagementApi.DAL
                 }
             }
         }
-
     }
+
+
 
 
 }

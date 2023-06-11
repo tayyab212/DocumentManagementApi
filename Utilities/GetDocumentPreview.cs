@@ -10,6 +10,33 @@ using System.Net.Http.Headers;
 
 namespace DocumentManagementApi.Utilities
 {
+
+    public static class Helper {
+        public static string GetContentType(string fileExtension)
+        {
+            switch (fileExtension.ToLower())
+            {
+                case ".pdf":
+                    return "application/pdf";
+                case ".xlsx":
+                case ".xls":
+                    return "application/vnd.ms-excel";
+                case ".docx":
+                case ".doc":
+                    return "application/msword";
+                case ".txt":
+                    return "text/plain";
+                case ".jpg":
+                case ".jpeg":
+                    return "image/jpeg";
+                case ".png":
+                    return "image/png";
+                default:
+                    return "application/octet-stream";
+            }
+        }
+    }
+
     public static class GetDocumentPreview
     {
       static  int width = 50;
@@ -175,4 +202,5 @@ namespace DocumentManagementApi.Utilities
         }
 
     }
+
 }
